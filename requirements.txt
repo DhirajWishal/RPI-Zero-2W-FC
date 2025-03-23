@@ -1,3 +1,5 @@
 numpy>=1.21.0
 smbus2>=0.4.1
 RPi.GPIO; sys_platform != "win32"
+Flask>=2.0
+pyserial>=3.5

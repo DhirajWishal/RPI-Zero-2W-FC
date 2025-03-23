@@ -1,6 +1,6 @@
 import os
+import time
 
-# In simulation mode (Windows), use dummy classes.
 if os.name == 'nt':
     print("Running in simulation mode (Windows). Using dummy hardware interfaces.")
 
@@ -17,9 +17,14 @@ if os.name == 'nt':
     class MotorController:
         def __init__(self, motor_pins):
             self.motor_pins = motor_pins
+            self.last_log_time = 0  # Track last log time
             print(f"Simulated MotorController initialized on pins {motor_pins}.")
         def set_motor_speeds(self, speeds):
-            print(f"Simulated setting motor speeds to: {speeds}")
+            current_time = time.time()
+            # Log only if at least one second has passed since the last log.
+            if current_time - self.last_log_time >= 1.0:
+                print(f"Simulated setting motor speeds to: {speeds}")
+                self.last_log_time = current_time
         def cleanup(self):
             print("Simulated MotorController cleanup.")
 
@@ -30,11 +35,11 @@ if os.name == 'nt':
         def start(self):
             print("Simulated IPCReceiver started.")
         def run(self):
-            # In simulation mode, this could update control_inputs periodically.
+            # In simulation mode, you might update control_inputs periodically.
             pass
 
 else:
-    # On non-Windows (e.g., Linux on Raspberry Pi), import real modules.
+    # On non-Windows (e.g., Linux on Raspberry Pi), use the real implementations.
     from mpu6050 import MPU6050 as IMU
     from motor_controller import MotorController
     from ipc_receiver import IPCReceiver
