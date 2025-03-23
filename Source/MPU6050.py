@@ -1,6 +1,6 @@
-import time
-import smbus
 import numpy as np
+import smbus
+import time
 import sys
 
 

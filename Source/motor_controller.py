@@ -1,5 +1,5 @@
-import RPi.GPIO as GPIO
 import numpy as np
+import RPi.GPIO as GPIO
 import sys
 
 
@@ -19,7 +19,6 @@ class MotorController:
             self.pwm.append(p)
 
     def set_motor_speeds(self, speeds):
-        # Use numpy to clip motor speeds between 0 and 100
         speeds = np.clip(np.array(speeds), 0, 100)
         for p, speed in zip(self.pwm, speeds):
             p.ChangeDutyCycle(float(speed))

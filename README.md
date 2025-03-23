@@ -7,7 +7,7 @@ Flight controller designed to run on an Raspberry Pi Zero 2W board.
 To setup the project, start by setting up the required permissions and running the setup script.
 
 ```sh
-chmod +x Scripts/setup.sh
+chmod +x Scripts/Linux/setup.sh
 ./Scripts/setup.sh
 ```
 
@@ -16,5 +16,9 @@ chmod +x Scripts/setup.sh
 To run the flight controller, use the following command.
 
 ```sh
-./Scripts/run.sh
+./Scripts/Linux/run.sh
 ```
+
+## Testing and Emulation on Windows
+
+The project also comes with testing and evaluation capabilities on Windows to make the development and testing easier. This process can be setup run similarly to the final RPI setup and run process as mentioned above.

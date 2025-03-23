@@ -56,7 +56,7 @@ class MadgwickAHRS:
             q1 * gyro[2] + q2 * gyro[1] - q3 * gyro[0]
         ]) - self.beta * s
 
-        # Integrate to yield new quaternion using the measured dt
+        # Integrate to yield new quaternion using dt
         q = q + qDot * dt
         # Normalize quaternion
         self.q = q / np.linalg.norm(q)
