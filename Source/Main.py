@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
-import time
 import os
 import sys
+import time
 
 import PID
 import MPU6050
+import MadgwickAHRS
 import MotorController
 import IPCReceiver
-import MadgwickAHRS
-
 
 # ------------------------------
 # Preliminary Hardware/Software Check
 # ------------------------------
+
+
 def check_hardware_and_software():
     # Check if the I2C device file exists (required for MPU6050 communication)
     if not os.path.exists("/dev/i2c-1"):
@@ -34,18 +35,19 @@ def check_hardware_and_software():
         print(
             "Warning: Device model file not found. Proceeding without model verification.")
 
-
 # ------------------------------
 # Main Flight Controller Loop
 # ------------------------------
+
+
 def main():
     # Perform hardware/software checks before proceeding
     check_hardware_and_software()
 
     # Initialize MPU6050 with calibration
     mpu = MPU6050(calibration_samples=200)
-    # Initialize Madgwick filter (50 Hz sample period)
-    madgwick = MadgwickAHRS(sample_period=0.02, beta=0.1)
+    # Initialize Madgwick filter
+    madgwick = MadgwickAHRS(beta=0.1)
     # Define motor GPIO pins (adjust as needed)
     # [Front Left, Front Right, Rear Left, Rear Right]
     motor_pins = [17, 18, 27, 22]
@@ -58,14 +60,21 @@ def main():
     pid_pitch = PID(Kp=1.0, Ki=0.0, Kd=0.05)
     pid_yaw = PID(Kp=1.0, Ki=0.0, Kd=0.05)
 
+    # Initialize last_update for dynamic dt calculation
+    last_update = time.time()
+
     try:
         while True:
+            current_time = time.time()
+            dt = current_time - last_update
+            last_update = current_time
+
             # Read sensor data
             ax, ay, az = mpu.get_accel_data()
             gx, gy, gz = mpu.get_gyro_data()
 
-            # Update the Madgwick filter with current IMU data
-            madgwick.updateIMU(gx, gy, gz, ax, ay, az)
+            # Update the Madgwick filter with current IMU data using measured dt
+            madgwick.updateIMU(gx, gy, gz, ax, ay, az, dt)
             roll_angle, pitch_angle, _ = madgwick.getEulerAngles()
 
             # Get desired control setpoints from IPC
@@ -82,13 +91,10 @@ def main():
             # Compute PID corrections
             roll_correction = pid_roll.update(roll_angle)
             pitch_correction = pid_pitch.update(pitch_angle)
-            yaw_correction = pid_yaw.update(gz)  # using gyro Z for yaw
+            # using gyro Z for yaw correction
+            yaw_correction = pid_yaw.update(gz)
 
             # Motor mixing for an "X" configuration quadcopter:
-            # Front Left  = throttle + pitch + roll - yaw
-            # Front Right = throttle + pitch - roll + yaw
-            # Rear Left   = throttle - pitch + roll + yaw
-            # Rear Right  = throttle - pitch - roll - yaw
             motor_outputs = [
                 set_throttle + pitch_correction + roll_correction - yaw_correction,
                 set_throttle + pitch_correction - roll_correction + yaw_correction,
@@ -97,7 +103,6 @@ def main():
             ]
 
             motors.set_motor_speeds(motor_outputs)
-            time.sleep(0.02)  # 50 Hz loop
 
     except KeyboardInterrupt:
         print("Shutting down...")

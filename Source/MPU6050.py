@@ -1,13 +1,19 @@
 import time
 import smbus
 import numpy as np
+import sys
 
 
 class MPU6050:
     def __init__(self, address=0x68, bus_num=1, calibration_samples=200):
-        self.bus = smbus.SMBus(bus_num)
+        try:
+            self.bus = smbus.SMBus(bus_num)
+        except Exception as e:
+            print(
+                "Error: Unable to open I2C bus. Ensure that I2C is enabled. Exception:", e)
+            sys.exit(1)
         self.address = address
-        # Wake up MPU6050 (it starts in sleep mode)
+        # Wake up the MPU6050 (it starts in sleep mode)
         self.bus.write_byte_data(self.address, 0x6B, 0)
         self.accel_offsets = np.zeros(3)
         self.gyro_offsets = np.zeros(3)
@@ -36,7 +42,6 @@ class MPU6050:
             gx_sum += self.read_raw_data(0x43)
             gy_sum += self.read_raw_data(0x45)
             gz_sum += self.read_raw_data(0x47)
-            time.sleep(0.01)
         avg_ax = ax_sum / samples / 16384.0
         avg_ay = ay_sum / samples / 16384.0
         avg_az = az_sum / samples / 16384.0

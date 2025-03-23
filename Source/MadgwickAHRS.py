@@ -2,12 +2,11 @@ import numpy as np
 
 
 class MadgwickAHRS:
-    def __init__(self, sample_period=0.02, beta=0.1):
-        self.sample_period = sample_period
+    def __init__(self, beta=0.1):
         self.beta = beta
-        self.q = np.array([1.0, 0.0, 0.0, 0.0])  # quaternion
+        self.q = np.array([1.0, 0.0, 0.0, 0.0])  # initial quaternion
 
-    def updateIMU(self, gx, gy, gz, ax, ay, az):
+    def updateIMU(self, gx, gy, gz, ax, ay, az, dt):
         # Convert gyroscope readings from degrees/sec to radians/sec
         gyro = np.radians(np.array([gx, gy, gz]))
         # Normalize accelerometer measurement
@@ -57,8 +56,8 @@ class MadgwickAHRS:
             q1 * gyro[2] + q2 * gyro[1] - q3 * gyro[0]
         ]) - self.beta * s
 
-        # Integrate to yield new quaternion
-        q = q + qDot * self.sample_period
+        # Integrate to yield new quaternion using the measured dt
+        q = q + qDot * dt
         # Normalize quaternion
         self.q = q / np.linalg.norm(q)
 

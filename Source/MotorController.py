@@ -1,10 +1,15 @@
 import RPi.GPIO as GPIO
 import numpy as np
+import sys
 
 
 class MotorController:
     def __init__(self, motor_pins):
-        GPIO.setmode(GPIO.BCM)
+        try:
+            GPIO.setmode(GPIO.BCM)
+        except Exception as e:
+            print("Error: Unable to initialize RPi.GPIO. Exception:", e)
+            sys.exit(1)
         self.motor_pins = motor_pins
         self.pwm = []
         for pin in motor_pins:

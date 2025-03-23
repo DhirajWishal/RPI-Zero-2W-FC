@@ -1,5 +1,6 @@
 import threading
 import socket
+import sys
 
 
 class IPCReceiver(threading.Thread):
@@ -10,7 +11,12 @@ class IPCReceiver(threading.Thread):
         self.daemon = True
         self.control_inputs = {'throttle': 0, 'roll': 0, 'pitch': 0, 'yaw': 0}
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind((self.host, self.port))
+        try:
+            self.sock.bind((self.host, self.port))
+        except Exception as e:
+            print("Error: Unable to bind UDP socket on port",
+                  self.port, "Exception:", e)
+            sys.exit(1)
 
     def run(self):
         while True:
